@@ -14,7 +14,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
+      - name: Format generated changelog
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+      - name: Commit formatted changelog
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        run: |
+          npx --yes prettier --write CHANGELOG.md
+          if git diff --quiet -- CHANGELOG.md; then exit 0; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add CHANGELOG.md
+          git commit -m "chore: format generated changelog"
+          git push

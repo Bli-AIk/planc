@@ -168,6 +168,7 @@ test('interface language follows URL and can be toggled locally', async ({ page 
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.getByRole('button', { name: '切换到简体中文' }).click();
   expect(await page.evaluate(() => localStorage.getItem('planc.locale'))).toBe('zh');
+  expect(new URL(page.url()).searchParams.has('lang')).toBe(false);
   await page.goto(running.url); await expect(page.locator('#graphs-label')).toHaveText('主题图');
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
 });

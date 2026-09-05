@@ -229,6 +229,10 @@ function applyLocale() {
   $('history-button').setAttribute('aria-label', t('localHistory')); $('history-button').setAttribute('title', t('localHistory')); $('history-title').textContent = t('localHistory'); $('close-history').setAttribute('aria-label', t('closeHistory')); $('close-history').setAttribute('title', t('closeHistory'));
   $('language-button').textContent = t('language'); $('language-button').setAttribute('aria-label', t('languageTitle')); $('language-button').setAttribute('title', t('languageTitle'));
 }
-$('language-button').onclick = () => { toggleLocale(); location.reload(); };
+$('language-button').onclick = () => {
+  toggleLocale();
+  const url = new URL(location.href); url.searchParams.delete('lang'); history.replaceState(null, '', url);
+  location.reload();
+};
 applyLocale();
 refreshIcons();
