@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1](https://github.com/Bli-AIk/planc/compare/v0.3.0...v0.3.1) (2026-09-05)
+
+### Fixes
+
+- preserve language overrides and format releases ([3d7013b](https://github.com/Bli-AIk/planc/commit/3d7013bd007737cb20d0f324df831be4f5f44237))
+
 ## [0.3.0](https://github.com/Bli-AIk/planc/compare/v0.2.0...v0.3.0) (2026-09-05)
 
 ### Features
