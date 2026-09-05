@@ -110,6 +110,8 @@ The installer preserves an existing installation and exits with an error instead
 
 The viewer prints its local URL, normally `http://127.0.0.1:4317/`. It tries another port if that one is occupied; stop it with Ctrl-C. A new plan starts empty. Work with your agent to adopt the first tasks.
 
+The interface follows the browser language: Chinese browsers use Simplified Chinese and other languages use English. You can override it with the `lang` query parameter, for example `http://127.0.0.1:4317/?lang=zh` or `http://127.0.0.1:4317/?lang=en`. The language button stores your choice for later visits.
+
 ### During the Work
 
 1. Describe your goal or current difficulty. The agent reads relevant code and notes, helps establish facts, and discusses possible directions.
