@@ -17,6 +17,82 @@ async function clickNode(page, id) {
   const position = await page.evaluate(id => document.getElementById('graph')._cyreg.cy.getElementById(`task:${id}`).renderedPosition(), id);
   const box = await page.locator('#graph').boundingBox(); await page.mouse.click(box.x + position.x, box.y + position.y);
 }
+const graphGeometry = page => page.evaluate(() => {
+  const cy = document.getElementById('graph')._cyreg.cy;
+  return {
+    nodes: cy.nodes().map(n => ({ id: n.id(), position: n.position(), width: n.width(), height: n.height() })),
+    edges: cy.edges().map(e => ({
+      id: e.id(), source: e.source().id(), target: e.target().id(), related: e.hasClass('related'),
+      sourceArrow: e.style('source-arrow-shape'), targetArrow: e.style('target-arrow-shape'),
+      points: [e.sourceEndpoint(), ...(e.segmentPoints() || []), e.targetEndpoint()]
+    }))
+  };
+});
+function expectGridAndArrows(geometry) {
+  for (const node of geometry.nodes) {
+    expect(node.position.x % 24).toBe(0); expect(node.position.y % 24).toBe(0);
+    for (const other of geometry.nodes.filter(n => n.id !== node.id)) {
+      expect(Math.abs(node.position.x - other.position.x) >= node.width || Math.abs(node.position.y - other.position.y) >= node.height).toBe(true);
+    }
+  }
+  for (const edge of geometry.edges) {
+    expect(edge.targetArrow).toBe('triangle');
+    expect(edge.sourceArrow).toBe('none');
+    for (const point of edge.points) expect(Number.isFinite(point.x) && Number.isFinite(point.y), `${edge.id} has finite endpoints`).toBe(true);
+    if (edge.source === edge.target) continue;
+    for (let i = 1; i < edge.points.length; i++) {
+      const a = edge.points[i - 1]; const b = edge.points[i];
+      const dx = Math.abs(b.x - a.x); const dy = Math.abs(b.y - a.y);
+      expect(Math.min(dx, dy, Math.abs(dx - dy)), `${edge.id} segment ${i} follows the eight directions`).toBeLessThan(0.01);
+      // Sample the actual rendered segment, not just its stored routing points.
+      const samples = Math.ceil(Math.max(dx, dy));
+      for (const node of geometry.nodes.filter(n => n.id !== edge.source && n.id !== edge.target)) {
+        for (let step = 0; step <= samples; step++) {
+          const fraction = samples ? step / samples : 0;
+          const x = a.x + (b.x - a.x) * fraction; const y = a.y + (b.y - a.y) * fraction;
+          if (Math.abs(x - node.position.x) < node.width / 2 && Math.abs(y - node.position.y) < node.height / 2) {
+            throw new Error(`${edge.id} crosses ${node.id}`);
+          }
+        }
+      }
+    }
+  }
+}
+test('Mauve selection and eight-direction arrows remain stable when hidden content is revealed', async ({ page }) => {
+  await clickNode(page, 'reading-view');
+  expect(await page.evaluate(() => document.getElementById('graph')._cyreg.cy.$(':selected').style('border-color'))).toBe('rgb(203,166,247)');
+  await expect(page.locator('.graph-link[aria-current="true"]')).toHaveCSS('color', 'rgb(203, 166, 247)');
+  const before = await graphGeometry(page); expectGridAndArrows(before);
+  await page.getByLabel('查看隐藏前置').check(); await page.getByLabel('查看隐藏项', { exact: true }).check();
+  const after = await graphGeometry(page); expectGridAndArrows(after);
+  for (const relation of plan.relations) {
+    const edge = after.edges.find(e => e.id === `rel:${relation.id}`);
+    expect(edge.source).toBe(`task:${relation.from}`); expect(edge.target).toBe(`task:${relation.to}`);
+    if (relation.type === 'prerequisite') {
+      expect(after.nodes.find(n => n.id === edge.source).position.y).toBeLessThan(after.nodes.find(n => n.id === edge.target).position.y);
+    }
+  }
+  for (const edge of before.edges) expect(after.edges.find(e => e.id === edge.id)).toEqual(edge);
+});
+test('branching, merging, long prerequisites and reciprocal associations route around nodes', async ({ page }, testInfo) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  plan.tasks = Array.from({ length: 12 }, (_, i) => ({ ...plan.tasks[3], id: `t${i}`, title: `Task ${i}`, status: 'not_started', notes: [] }));
+  plan.checks = []; plan.changes = [];
+  plan.graphs = [{ id: 'delivery', title: 'Routing', notes: [], taskIds: plan.tasks.map(t => t.id) }];
+  plan.relations = [[0, 1], [0, 2], [0, 3], [1, 4], [2, 4], [2, 5], [3, 6], [4, 7], [5, 7], [6, 7], [7, 8], [7, 9], [8, 10], [9, 10], [10, 11], [0, 11]]
+    .map(([from, to], i) => ({ id: `p${i}`, from: `t${from}`, to: `t${to}`, type: 'prerequisite', implicit: i === 15 }));
+  plan.relations.push(...[[1, 6], [6, 1], [1, 4], [2, 2], [11, 0]].map(([from, to], i) => ({ id: `a${i}`, from: `t${from}`, to: `t${to}`, type: 'related' })));
+  writePlan(root, plan); await expect(page.locator('#graph-title')).toHaveText('Routing');
+  await page.getByLabel('查看隐藏项', { exact: true }).check(); await page.getByLabel('查看隐藏前置').check();
+  await page.getByRole('button', { name: '适应图形', exact: true }).click();
+  const before = await graphGeometry(page); expect(before.edges).toHaveLength(plan.relations.length); expectGridAndArrows(before);
+  plan.tasks.reverse(); plan.relations.reverse(); plan.graphs[0].taskIds.reverse(); writePlan(root, plan);
+  await page.reload(); await expect(page.locator('#connection')).toHaveText('已同步');
+  await page.getByLabel('查看隐藏项', { exact: true }).check(); await page.getByLabel('查看隐藏前置').check();
+  expect(await graphGeometry(page)).toEqual(before); expect(errors).toEqual([]);
+  await page.getByRole('button', { name: '适应图形', exact: true }).click();
+  await page.screenshot({ path: testInfo.outputPath('routing.png'), fullPage: true });
+});
 test('filter toggles preserve positions and implicit edges never reveal tasks', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   const before = await graphState(page); expect(before.nodes).toHaveLength(4); expect(before.edges).toHaveLength(3);

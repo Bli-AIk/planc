@@ -46,13 +46,15 @@
     "cytoscape-dagre": "^2.5.0",
     "dagre": "^0.8.5",
     "lucide": "^0.468.0",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.1.0",
+    "pathfinding": "^0.4.18"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@types/cytoscape": "^3.21.9",
     "@types/cytoscape-dagre": "^2.3.3",
     "@types/markdown-it": "^14.1.2",
+    "@types/pathfinding": "^0.1.0",
     "esbuild": "^0.25.0",
     "prettier": "^3.9.6",
     "typescript": "^5.9.2"

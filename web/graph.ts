@@ -1,13 +1,14 @@
 import cytoscape, { Core, Position, StylesheetJson } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import type { Graph, Plan, Task } from './types';
+import { GRID_STEP, NODE_WIDTH, NODE_HEIGHT, routeEdges, type EdgeRoute } from './routing';
 cytoscape.use(dagre);
 
 const theme = getComputedStyle(document.documentElement);
 const color = (name: string) => theme.getPropertyValue(`--${name}`).trim();
 const styles: StylesheetJson = [
   { selector: 'node', style: {
-    width: 168, height: 80, shape: 'round-rectangle', 'corner-radius': '2px',
+    width: NODE_WIDTH, height: NODE_HEIGHT, shape: 'round-rectangle', 'corner-radius': '2px',
     'background-color': color('base'), 'border-width': 1, 'border-color': color('surface2'),
     label: 'data(label)', color: color('subtext'), 'font-family': theme.getPropertyValue('--font-mono').trim(), 'font-size': 14,
     'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap', 'text-max-width': '144px', 'text-overflow-wrap': 'anywhere',
@@ -16,12 +17,14 @@ const styles: StylesheetJson = [
   { selector: 'node.completed', style: { 'border-color': color('green'), color: color('green') } },
   { selector: 'node.in_progress', style: { 'border-color': color('yellow'), color: color('yellow') } },
   { selector: 'node.ready', style: { 'border-color': color('blue'), color: color('blue') } },
-  { selector: 'node:selected', style: { 'border-width': 3, 'border-color': color('peach'), 'background-color': color('surface0') } },
-  { selector: 'edge', style: { width: 1.5, 'curve-style': 'bezier', 'line-color': color('overlay'), 'target-arrow-color': color('overlay'), 'target-arrow-shape': 'triangle', 'arrow-scale': 0.8, 'overlay-opacity': 0 } },
-  { selector: 'edge.implicit', style: { 'line-style': 'dashed', 'line-color': color('surface2'), 'target-arrow-color': color('surface2') } },
-  { selector: 'edge.related', style: { 'line-style': 'dotted', 'line-color': color('mauve'), 'target-arrow-shape': 'none', 'curve-style': 'unbundled-bezier', 'control-point-distances': [-100], 'control-point-weights': [0.5] } }
+  { selector: 'node:selected', style: { 'border-width': 3, 'border-color': color('mauve'), 'background-color': color('surface0') } },
+  { selector: 'edge', style: { width: 1.75, 'curve-style': 'straight', 'line-color': color('overlay'), 'target-arrow-color': color('overlay'), 'target-arrow-shape': 'triangle', 'arrow-scale': 1.15, 'overlay-opacity': 0 } },
+  { selector: 'edge.routed', style: { 'curve-style': 'segments', 'edge-distances': 'node-position', 'segment-weights': 'data(weights)', 'segment-distances': 'data(distances)' } },
+  { selector: 'edge.implicit', style: { 'line-style': 'dashed' } },
+  { selector: 'edge.related', style: { 'line-style': 'dashed', 'line-color': color('mauve'), 'target-arrow-color': color('mauve') } },
+  { selector: 'edge.loop', style: { 'curve-style': 'bezier', 'control-point-step-size': 64, 'loop-direction': '-90deg', 'loop-sweep': '60deg' } }
 ];
-interface Layout { signature: string; positions: Map<string, Position>; pan?: Position; zoom?: number }
+interface Layout { signature: string; positions: Map<string, Position>; routes: Map<string, EdgeRoute>; pan?: Position; zoom?: number }
 const taskKey = (id: string) => `task:${id}`;
 export const isVisible = (task: Task, showAll: boolean) => showAll || task.status !== 'not_started' || task.readiness.ready;
 
@@ -43,9 +46,9 @@ export class TaskGraph {
     }
     if (!graph) { this.cy.elements().remove(); this.current = null; return; }
     const members = new Set(graph.taskIds);
-    const tasks = plan.tasks.filter(t => members.has(t.id));
-    const edges = plan.relations.filter(r => members.has(r.from) && members.has(r.to));
-    const signature = JSON.stringify([graph.taskIds.slice().sort(), edges.filter(r => r.type === 'prerequisite').map(r => [r.from, r.to]).sort()]);
+    const tasks = plan.tasks.filter(t => members.has(t.id)).sort((a, b) => a.id.localeCompare(b.id));
+    const edges = plan.relations.filter(r => members.has(r.from) && members.has(r.to)).sort((a, b) => a.id.localeCompare(b.id));
+    const signature = JSON.stringify([graph.taskIds.slice().sort(), edges.map(r => [r.id, r.from, r.to, r.type])]);
     let layout = this.layouts.get(graph.id);
     if (!layout || layout.signature !== signature) {
       // Layout always includes blocked nodes and implicit prerequisites. State and filtering cannot change it.
@@ -53,8 +56,12 @@ export class TaskGraph {
         ...tasks.map(t => ({ data: { id: taskKey(t.id) } })),
         ...edges.filter(r => r.type === 'prerequisite').map(r => ({ data: { id: `rel:${r.id}`, source: taskKey(r.from), target: taskKey(r.to) } }))
       ] });
-      full.layout({ name: 'dagre', rankDir: 'TB', align: 'UL', nodeSep: 44, rankSep: 50, fit: false } as cytoscape.LayoutOptions).run();
-      layout = { signature, positions: new Map(full.nodes().map(n => [n.data('taskId') || n.id().slice(5), { ...n.position() }] as [string, Position])), pan: layout?.pan, zoom: layout?.zoom };
+      full.layout({ name: 'dagre', rankDir: 'TB', align: 'UL', nodeSep: 80, rankSep: 80, fit: false } as cytoscape.LayoutOptions).run();
+      const positions = new Map(full.nodes().map(n => [n.id().slice(5), {
+        x: Math.round(n.position('x') / GRID_STEP) * GRID_STEP,
+        y: Math.round(n.position('y') / GRID_STEP) * GRID_STEP
+      }] as [string, Position]));
+      layout = { signature, positions, routes: routeEdges(positions, edges), pan: layout?.pan, zoom: layout?.zoom };
       full.destroy(); this.layouts.set(graph.id, layout);
     }
     this.current = graph.id;
@@ -67,7 +74,7 @@ export class TaskGraph {
         position: layout!.positions.get(t.id), classes: `${t.status} ${t.status === 'not_started' && t.readiness.ready ? 'ready' : ''}`
       })));
       this.cy.add(edges.filter(r => visibleIds.has(r.from) && visibleIds.has(r.to) && (!r.implicit || showImplicit)).map(r => ({
-        data: { id: `rel:${r.id}`, source: taskKey(r.from), target: taskKey(r.to) }, classes: `${r.type} ${r.implicit ? 'implicit' : ''}`
+        data: { id: `rel:${r.id}`, source: taskKey(r.from), target: taskKey(r.to), ...layout!.routes.get(r.id) }, classes: `${r.type} ${r.implicit ? 'implicit' : ''} ${layout!.routes.get(r.id)!.straight ? '' : 'routed'} ${r.from === r.to ? 'loop' : ''}`
       })));
       if (selected) this.cy.getElementById(taskKey(selected)).select();
     });

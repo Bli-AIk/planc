@@ -12,7 +12,6 @@
   --green: #a6e3a1;
   --yellow: #f9e2af;
   --blue: #89b4fa;
-  --peach: #fab387;
   --mauve: #cba6f7;
   --red: #f38ba8;
   --teal: #94e2d5;
@@ -38,8 +37,8 @@ a { color: var(--blue); text-underline-offset: 4px; }
 
 .app-header { height: 64px; display: flex; align-items: center; border-bottom: 1px solid var(--surface1); gap: 24px; padding: 0 20px; background: var(--mantle); }
 .brand { display: flex; align-items: center; gap: 12px; width: 188px; flex: none; color: var(--text); font-size: 24px; font-weight: 700; text-decoration: none; }
-.brand svg { color: var(--peach); width: 24px; height: 24px; }
-.brand span::after { content: "_"; color: var(--peach); }
+.brand svg { color: var(--mauve); width: 24px; height: 24px; }
+.brand span::after { content: "_"; color: var(--mauve); }
 .project-heading { display: flex; gap: 16px; align-items: center; min-width: 0; flex: 1; }
 #project-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .readonly { display: flex; align-items: center; gap: 6px; color: var(--subtext); font-size: 11px; white-space: nowrap; }
@@ -59,7 +58,7 @@ a { color: var(--blue); text-underline-offset: 4px; }
 .graph-link { width: 100%; display: flex; align-items: center; gap: 8px; background: transparent; border: 0; border-left: 2px solid transparent; padding: 12px 10px; text-align: left; font-size: 12px; }
 .graph-link span { overflow-wrap: anywhere; min-width: 0; flex: 1; }
 .graph-link small { font-size: 11px; color: var(--overlay); }
-.graph-link[aria-current="true"] { color: var(--peach); background: var(--base); border-left-color: var(--peach); }
+.graph-link[aria-current="true"] { color: var(--mauve); background: var(--base); border-left-color: var(--mauve); }
 .graph-link:hover { background: var(--base); }
 .task-index { margin-top: 32px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .search { display: flex; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--surface1); border-radius: 4px; margin: 0 8px 12px; background: var(--crust); }
@@ -71,7 +70,7 @@ a { color: var(--blue); text-underline-offset: 4px; }
 .task-link svg { width: 14px; height: 14px; margin-top: 3px; }
 .task-link span { min-width: 0; overflow-wrap: anywhere; line-height: 1.75; }
 .task-link:hover, .task-link[aria-current="true"] { background: var(--surface0); }
-.task-link[aria-current="true"] { border-left-color: var(--peach); }
+.task-link[aria-current="true"] { border-left-color: var(--mauve); }
 .sidebar-footer { border-top: 1px solid var(--surface0); margin-top: 16px; padding: 16px 12px; display: flex; gap: 8px; align-items: center; font-size: 10px; color: var(--subtext); }
 .sidebar-footer svg { color: var(--teal); }
 
@@ -107,14 +106,14 @@ input[type="checkbox"] { accent-color: var(--blue); width: 14px; height: 14px; m
 .status-badge svg { width: 14px; height: 14px; }
 .tabs { display: flex; gap: 24px; padding: 0 24px; border-bottom: 1px solid var(--surface1); }
 .tabs button { border: 0; border-bottom: 2px solid transparent; padding: 12px 0; background: none; font-size: 12px; color: var(--subtext); }
-.tabs button[aria-selected="true"] { color: var(--peach); border-bottom-color: var(--peach); }
+.tabs button[aria-selected="true"] { color: var(--mauve); border-bottom-color: var(--mauve); }
 .detail-content { padding: 24px; flex: 1; min-height: 0; overflow: auto; font-size: 13px; line-height: 1.9; overflow-wrap: anywhere; }
 .detail-section { margin-bottom: 28px; }
 .detail-section h3 { font-size: 11px; color: var(--subtext); font-weight: 400; margin-bottom: 12px; }
 .detail-section p { margin-bottom: 12px; }
 .criteria { padding-left: 20px; margin: 0; }
 .criteria li { padding-left: 4px; margin-bottom: 8px; }
-.criteria li::marker { color: var(--peach); }
+.criteria li::marker { color: var(--mauve); }
 .dependency { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--surface0); padding: 12px 0; background: none; font-size: 12px; line-height: 1.75; }
 .dependency > svg { width: 14px; height: 14px; margin-top: 4px; color: var(--overlay); }
 .dependency .dep-body { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -154,7 +153,7 @@ dialog::backdrop { background: #11111bcc; }
 .commit { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--surface0); font-size: 13px; }
 .commit > svg { margin-top: 4px; color: var(--teal); }
 .commit small { display: block; color: var(--subtext); font-size: 11px; }
-.history-subheading { margin: 24px 0 12px; font-size: 13px; color: var(--peach); }
+.history-subheading { margin: 24px 0 12px; font-size: 13px; color: var(--mauve); }
 
 @media (min-width: 1650px) {
   .app-layout { grid-template-columns: 252px minmax(320px, 1fr) 412px; }
