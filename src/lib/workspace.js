@@ -37,7 +37,7 @@ function checkpoint(root, message = 'Update plan') {
   if (changed) git(dir, ['-c', 'user.name=planc', '-c', 'user.email=planc@localhost', 'commit', '--quiet', '-m', message]);
   return { changed, commit: git(dir, ['rev-parse', 'HEAD']).trim() };
 }
-function init(root = process.cwd()) {
+function init(root = process.cwd(), options = {}) {
   root = projectRoot(root);
   const dir = planRoot(root, true); const ignore = path.join(root, '.gitignore');
   assertLocal(ignore, false, true);
@@ -45,6 +45,9 @@ function init(root = process.cwd()) {
     auditTree(dir);
     if (fs.existsSync(path.join(dir, '.git'))) assertIndependentGit(dir);
     if (fs.existsSync(path.join(dir, 'plan.json'))) loadSnapshot(root);
+  }
+  if (!fs.existsSync(path.join(dir, '.git')) && !options.acceptPlanGit) {
+    throw new Error('Initialization will create an independent .plan Git repository and checkpoint plan files locally. Pass --accept-plan-git after confirming this project-local history; planc never touches the outer Git repository.');
   }
   fs.mkdirSync(dir, { recursive: true });
   const notes = path.join(dir, 'notes');

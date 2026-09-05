@@ -10,7 +10,7 @@ function temporary(t) {
 }
 function writePlan(root, plan) { fs.writeFileSync(path.join(root, '.plan/plan.json'), `${JSON.stringify(plan, null, 2)}\n`); }
 function fixture(t) {
-  const root = temporary(t); init(root);
+  const root = temporary(t); init(root, { acceptPlanGit: true });
   const plan = JSON.parse(fs.readFileSync(path.join(__dirname, '../examples/plan.json'), 'utf8'));
   fs.cpSync(path.join(__dirname, '../examples/notes'), path.join(root, '.plan/notes'), { recursive: true });
   writePlan(root, plan); checkpoint(root, 'Load example plan'); return { root, plan };

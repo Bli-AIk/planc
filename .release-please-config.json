@@ -1,0 +1,10 @@
+{
+  "release-type": "node",
+  "package-name": "planc",
+  "include-component-in-tag": false,
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Fixes" },
+    { "type": "docs", "section": "Documentation" }
+  ]
+}

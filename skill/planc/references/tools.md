@@ -3,7 +3,7 @@
 Install the complete skill inside the project, using `.agents/skills/planc` for Codex or `.claude/skills/planc` for Claude Code. Personal/global installation is unsupported. Resolve this absolute skill directory once, then run its bundled script against the containing project. Quote project paths and messages. Node >=22 and Git are required; no target-project npm dependency installation is needed.
 
 ```sh
-node <skill>/scripts/planc.cjs init /path/to/project
+node <skill>/scripts/planc.cjs init /path/to/project --accept-plan-git
 node <skill>/scripts/planc.cjs validate /path/to/project
 node <skill>/scripts/planc.cjs checkpoint /path/to/project -m "Clarify storage completion evidence"
 node <skill>/scripts/planc.cjs serve /path/to/project --port 4317
@@ -11,7 +11,7 @@ node <skill>/scripts/planc.cjs serve /path/to/project --port 4317
 
 The project argument defaults to the working directory. It is the outer project, not `.plan`. `serve` binds only to `127.0.0.1`, tries the next port when occupied, and prints the actual URL. Stop with Ctrl-C. `--port 0` requests any free port. `--help` lists entrypoints.
 
-`init` creates missing directories and an empty version-1 plan, appends the outer ignore rule, initializes independent Git, and checkpoints. It does not overwrite existing plans, notes, or Git configuration. Repeated initialization with no changes creates no extra commit. Existing invalid data is preserved and reported. An outer repository is optional. The tool never creates a remote or pushes.
+`init` first requires explicit consent for the project-local Git boundary. Explain that it creates independent `.plan/.git` history, appends `/.plan/` to the outer `.gitignore`, and checkpoints plan files; it never commits to or configures the outer repository. After the user agrees, pass `--accept-plan-git`. Without that flag, initialization exits before writing. It creates missing directories and an empty version-1 plan, preserves existing plans, notes, and Git configuration, and never creates a remote or pushes. Repeated initialization after `.plan/.git` exists needs no repeated consent and creates no empty commit.
 
 `validate` checks the complete plan and every referenced Markdown file. Errors exit nonzero. Fix data inside `.plan`, preserving user notes and review history, then validate again. Unsupported versions require an explicit migration; there is no silent conversion.
 
