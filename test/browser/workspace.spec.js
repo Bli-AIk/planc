@@ -6,7 +6,7 @@ const { startServer } = require('../../src/server');
 let root; let plan; let running;
 test.beforeEach(async ({ page }) => {
   ({ root, plan } = fixture()); running = await startServer(root, { port: 0, pollInterval: 80 });
-  await page.goto(running.url); await expect(page.locator('#connection')).toHaveText('已同步');
+  await page.goto(`${running.url}?lang=zh`); await expect(page.locator('#connection')).toHaveText('已同步');
 });
 test.afterEach(async () => { await running?.close(); if (root) fs.rmSync(root, { recursive: true, force: true }); });
 const graphState = page => page.evaluate(() => {
@@ -158,6 +158,18 @@ test('agent and user notes are separate, Markdown code is highlighted, and inspe
   expect(after).toBeGreaterThan(before);
   await page.reload(); await expect(page.locator('#connection')).toHaveText('已同步');
   expect(await page.evaluate(() => Number.parseFloat(getComputedStyle(document.querySelector('.app-layout')).getPropertyValue('--inspector-width')))).toBe(after);
+});
+test('interface language follows URL and can be toggled locally', async ({ page }) => {
+  await page.goto(`${running.url}?lang=en`);
+  await expect(page.locator('#connection')).toHaveText('Synced');
+  await expect(page.locator('#graphs-label')).toHaveText('Topic graphs');
+  await page.locator('#task-list').getByRole('button', { name: '决定本地数据的存储方式' }).click();
+  await expect(page.getByRole('tab', { name: 'Agent guidance 1' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.getByRole('button', { name: '切换到简体中文' }).click();
+  expect(await page.evaluate(() => localStorage.getItem('planc.locale'))).toBe('zh');
+  await page.goto(running.url); await expect(page.locator('#graphs-label')).toHaveText('主题图');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
 });
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 1920, height: 1080 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
   test(`readable graph and detail at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
