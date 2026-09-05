@@ -7150,7 +7150,7 @@ var require_workspace = __commonJS({
       if (changed) git(dir, ["-c", "user.name=planc", "-c", "user.email=planc@localhost", "commit", "--quiet", "-m", message]);
       return { changed, commit: git(dir, ["rev-parse", "HEAD"]).trim() };
     }
-    function init2(root = process.cwd()) {
+    function init2(root = process.cwd(), options = {}) {
       root = projectRoot(root);
       const dir = planRoot(root, true);
       const ignore = path2.join(root, ".gitignore");
@@ -7159,6 +7159,9 @@ var require_workspace = __commonJS({
         auditTree(dir);
         if (fs.existsSync(path2.join(dir, ".git"))) assertIndependentGit(dir);
         if (fs.existsSync(path2.join(dir, "plan.json"))) loadSnapshot2(root);
+      }
+      if (!fs.existsSync(path2.join(dir, ".git")) && !options.acceptPlanGit) {
+        throw new Error("Initialization will create an independent .plan Git repository and checkpoint plan files locally. Pass --accept-plan-git after confirming this project-local history; planc never touches the outer Git repository.");
       }
       fs.mkdirSync(dir, { recursive: true });
       const notes = path2.join(dir, "notes");
@@ -7331,19 +7334,21 @@ async function main(args = process.argv.slice(2)) {
     const { values, positionals } = parseArgs({ args, allowPositionals: true, options: {
       port: { type: "string" },
       message: { type: "string", short: "m" },
+      "accept-plan-git": { type: "boolean" },
       help: { type: "boolean", short: "h" }
     } });
     const [command, directory] = positionals;
     if (values.help || !command) {
-      console.log('planc 0.1.0\n\n  planc init [project-dir]\n  planc validate [project-dir]\n  planc serve [project-dir] [--port 4317]\n  planc checkpoint [project-dir] [-m "Update plan"]\n\nNode >=22 and Git are required. serve is read-only and binds to 127.0.0.1.');
+      console.log('planc 0.1.0\n\n  planc init [project-dir] [--accept-plan-git]\n  planc validate [project-dir]\n  planc serve [project-dir] [--port 4317]\n  planc checkpoint [project-dir] [-m "Update plan"]\n\nNode >=22 and Git are required. init creates independent .plan Git history only after --accept-plan-git. serve is read-only and binds to 127.0.0.1.');
       return 0;
     }
     if (positionals.length > 2) throw new Error("Too many arguments; use -m for a checkpoint message");
     if (values.port && command !== "serve") throw new Error("--port is only valid for serve");
     if (values.message && command !== "checkpoint") throw new Error("--message is only valid for checkpoint");
+    if (values["accept-plan-git"] && command !== "init") throw new Error("--accept-plan-git is only valid for init");
     const root = path.resolve(directory || process.cwd());
     if (command === "init") {
-      const result = init(root);
+      const result = init(root, { acceptPlanGit: values["accept-plan-git"] });
       console.log(`Initialized ${path.join(root, ".plan")} (${result.commit.slice(0, 8)})`);
       return 0;
     }

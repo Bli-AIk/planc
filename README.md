@@ -44,7 +44,7 @@ cd planc-test
 git init
 ```
 
-For an existing project, change into its root instead. Then choose your agent's installation block below. The temporary clone is removed after the complete skill has been copied into your project.
+For an existing project, change into its root instead. The `--accept-plan-git` flag is an explicit confirmation that planc may create independent history inside `.plan` and append `/.plan/` to this project's `.gitignore`; it never commits to the outer repository. Then choose your agent's installation block below. The temporary clone is removed after the complete skill has been copied into your project.
 
 ### Codex
 
@@ -57,7 +57,7 @@ Run from the target project's root:
   trap 'rm -rf "$planc_source"' EXIT
   git clone --depth 1 https://github.com/Bli-AIk/planc.git "$planc_source"
   node "$planc_source/scripts/install.mjs" codex .
-  node .agents/skills/planc/scripts/planc.cjs init .
+  node .agents/skills/planc/scripts/planc.cjs init . --accept-plan-git
   node .agents/skills/planc/scripts/planc.cjs validate .
 )
 ```
@@ -85,7 +85,7 @@ Run from the target project's root:
   trap 'rm -rf "$planc_source"' EXIT
   git clone --depth 1 https://github.com/Bli-AIk/planc.git "$planc_source"
   node "$planc_source/scripts/install.mjs" claude .
-  node .claude/skills/planc/scripts/planc.cjs init .
+  node .claude/skills/planc/scripts/planc.cjs init . --accept-plan-git
   node .claude/skills/planc/scripts/planc.cjs validate .
 )
 ```

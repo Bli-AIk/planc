@@ -1,4 +1,10 @@
 import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js/lib/core';
+import rust from 'highlight.js/lib/languages/rust';
+import json from 'highlight.js/lib/languages/json';
+import bash from 'highlight.js/lib/languages/bash';
+import toml from 'highlight.js/lib/languages/ini';
+import markdown from 'highlight.js/lib/languages/markdown';
 import { createIcons, Workflow, Eye, History, Search, GitCommitHorizontal, ListTodo, Plus, Minus, Scan, CircleCheck, CircleDot, Circle, LockKeyhole, X, Network, FileText, ArrowUpRight, ArrowRight, MessageSquare, GitBranch } from 'lucide';
 import { TaskGraph, isVisible } from './graph';
 import type { Task, Graph, Check, Payload, Snapshot, Commit } from './types';
@@ -8,12 +14,13 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 const esc = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 const icon = (name: string) => `<i data-lucide="${name}" aria-hidden="true"></i>`;
 const refreshIcons = () => createIcons({ icons });
+hljs.registerLanguage('rust', rust); hljs.registerLanguage('json', json); hljs.registerLanguage('bash', bash); hljs.registerLanguage('shell', bash); hljs.registerLanguage('sh', bash); hljs.registerLanguage('toml', toml); hljs.registerLanguage('markdown', markdown); hljs.registerLanguage('md', markdown);
 const kindNames = { implementation: '实现', understanding: '理解', investigation: '调查', decision: '决策' };
 const time = (value: string) => new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 let snapshot: Snapshot | null = null;
 let graphId: string | null = null;
 let selected: string | null = null;
-let tab: 'task' | 'notes' | 'checks' = 'task';
+let tab: 'task' | 'user-notes' | 'agent-notes' | 'checks' = 'task';
 let selectedNote: string | null = null;
 let invalid = false;
 let commits: Commit[] = [];
@@ -80,7 +87,12 @@ function renderTask(task: Task) {
     ${latest && latest.outcome === 'needs_work' && latest.id !== completion?.id ? `<section class="detail-section"><h3>当前疑点</h3>${renderCheck(latest)}</section>` : ''}`;
 }
 function renderMarkdown(name: string) {
-  const md = new MarkdownIt({ html: false, linkify: true, typographer: false });
+  const md = new MarkdownIt({ html: false, linkify: true, typographer: false, highlight(code, language) {
+    const normalized = language.trim().toLowerCase();
+    if (!normalized || !hljs.getLanguage(normalized)) return '';
+    try { return hljs.highlight(code, { language: normalized }).value; }
+    catch { return ''; }
+  } });
   const defaultLink = md.renderer.rules.link_open || ((tokens, idx, options, _env, renderer) => renderer.renderToken(tokens, idx, options));
   md.renderer.rules.link_open = (tokens, idx, options, env, renderer) => {
     const token = tokens[idx]; const href = token.attrGet('href') || '';
@@ -99,6 +111,9 @@ function renderMarkdown(name: string) {
   md.renderer.rules.image = (tokens, idx) => esc(tokens[idx].content);
   return md.render(snapshot!.notes[name]);
 }
+function isAgentNote(name: string) { return /^notes\/agent\//.test(name); }
+function userNotes(names: string[]) { return names.filter(name => !isAgentNote(name)); }
+function agentNotes(names: string[]) { return names.filter(isAgentNote); }
 function renderNotes(names: string[]) {
   if (!names.length) return '<p class="quiet">暂无关联笔记</p>';
   if (!selectedNote || !Object.hasOwn(snapshot!.notes, selectedNote)) selectedNote = names[0];
@@ -111,13 +126,16 @@ function renderDetail() {
   $('clear-selection').hidden = !task;
   $('detail-label').textContent = task ? `${kindNames[task.kind]} · ${task.id}` : '主题概览';
   $('detail-title').innerHTML = task ? `<h2>${esc(task.title)}</h2><div class="task-meta">${badge(task)}<span>${kindNames[task.kind]}</span>${task.status === 'not_started' ? '<span>未开始</span>' : ''}</div>` : `<h2>${esc(graph?.title ?? snapshot.plan.title)}</h2><div class="task-meta"><span>${graph?.taskIds.length ?? 0} 个任务</span><span>${graph?.notes.length ?? 0} 份讨论笔记</span></div>`;
-  const tabs = task ? [['task', '任务'], ['notes', `笔记 ${task.notes.length}`], ['checks', `检查 ${snapshot.plan.checks.filter(c => c.taskId === task.id).length}`]] : [['task', '概览'], ['notes', '讨论笔记']];
+  const names = task?.notes ?? graph?.notes ?? [];
+  const mine = userNotes(names); const agent = agentNotes(names);
+  const tabs = task ? [['task', '任务'], ['user-notes', `用户笔记 ${mine.length}`], ['agent-notes', `Agent 指引 ${agent.length}`], ['checks', `检查 ${snapshot.plan.checks.filter(c => c.taskId === task.id).length}`]] : [['task', '概览'], ['agent-notes', `讨论材料 ${agent.length}`], ['user-notes', `用户笔记 ${mine.length}`]];
   if (!task && tab === 'checks') tab = 'task';
   $('detail-tabs').innerHTML = tabs.map(([id, title]) => `<button role="tab" data-tab="${id}" aria-selected="${tab === id}">${title}</button>`).join('');
-  if (tab === 'notes') content.innerHTML = renderNotes(task?.notes ?? graph?.notes ?? []);
+  if (tab === 'user-notes') content.innerHTML = renderNotes(mine);
+  else if (tab === 'agent-notes') content.innerHTML = renderNotes(agent);
   else if (tab === 'checks' && task) content.innerHTML = snapshot.plan.checks.filter(c => c.taskId === task.id).slice().reverse().map(renderCheck).join('') || '<p class="quiet">暂无检查记录</p>';
   else if (task) content.innerHTML = renderTask(task);
-  else content.innerHTML = `<section class="detail-section"><h3>当前任务</h3>${displayedTasks().map(taskButton).join('') || '<p class="quiet">暂无可见任务</p>'}</section>${graph?.notes.length ? `<section class="detail-section"><h3>讨论材料</h3>${renderNotes(graph.notes)}</section>` : ''}`;
+  else content.innerHTML = `<section class="detail-section"><h3>当前任务</h3>${displayedTasks().map(taskButton).join('') || '<p class="quiet">暂无可见任务</p>'}</section>`;
   content.scrollTop = scroll;
 }
 function render() {
@@ -174,6 +192,21 @@ $('clear-selection').onclick = () => { selected = null; selectedNote = null; tab
 $('history-button').onclick = () => { $<HTMLDialogElement>('history-dialog').showModal(); renderHistory(); void loadHistory(); };
 $('close-history').onclick = () => $<HTMLDialogElement>('history-dialog').close();
 setInterval(() => { if ($<HTMLDialogElement>('history-dialog').open) void loadHistory(); }, 3000);
+const layout = document.querySelector<HTMLElement>('.app-layout')!;
+const inspectorResizer = $('inspector-resizer');
+const storedWidth = Number(localStorage.getItem('planc.inspectorWidth'));
+if (Number.isFinite(storedWidth) && storedWidth >= 280 && storedWidth <= 620) layout.style.setProperty('--inspector-width', `${storedWidth}px`);
+function setInspectorWidth(width: number, save = false) {
+  const bounded = Math.max(280, Math.min(620, width)); layout.style.setProperty('--inspector-width', `${bounded}px`);
+  if (save) localStorage.setItem('planc.inspectorWidth', String(Math.round(bounded)));
+}
+inspectorResizer.addEventListener('pointerdown', event => {
+  event.preventDefault(); inspectorResizer.setPointerCapture(event.pointerId);
+  const move = (moveEvent: PointerEvent) => setInspectorWidth(window.innerWidth - moveEvent.clientX);
+  const end = () => { setInspectorWidth(parseFloat(getComputedStyle(layout).getPropertyValue('--inspector-width')), true); inspectorResizer.removeEventListener('pointermove', move); inspectorResizer.removeEventListener('pointerup', end); };
+  inspectorResizer.addEventListener('pointermove', move); inspectorResizer.addEventListener('pointerup', end, { once: true });
+});
+inspectorResizer.addEventListener('keydown', event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const current = parseFloat(getComputedStyle(layout).getPropertyValue('--inspector-width')); setInspectorWidth(current + (event.key === 'ArrowLeft' ? 16 : -16), true); } });
 const events = new EventSource('/api/events');
 events.addEventListener('plan', event => { try { receive(JSON.parse(event.data)); } catch (error) { $('error').hidden = false; $('error').textContent = `无法显示更新：${String(error)}`; } });
 events.onerror = () => { $('connection').textContent = '连接中断'; $('connection').classList.add('offline'); };

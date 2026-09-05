@@ -136,11 +136,28 @@ test('shared task status, full prerequisites, cross-graph jump and user-confirma
 });
 test('Markdown cannot execute HTML or load external images, and linked notes open locally', async ({ page }) => {
   const seen = []; page.on('request', request => seen.push(request.url()));
-  fs.appendFileSync(path.join(root, '.plan/notes/agent/storage.md'), '\n<script>window.pwned=true</script>\n![external](https://example.invalid/image.png)\n[bad](javascript:alert(1))\n');
+  fs.appendFileSync(path.join(root, '.plan/notes/agent/storage.md'), '\n```rust\nfn main() { println!("ok"); }\n```\n<script>window.pwned=true</script>\n![external](https://example.invalid/image.png)\n[bad](javascript:alert(1))\n');
   await page.locator('#task-list').getByRole('button', { name: '决定本地数据的存储方式' }).click();
-  await page.getByRole('tab', { name: '笔记 1' }).click(); await expect(page.locator('.markdown')).toContainText('window.pwned');
+  await page.getByRole('tab', { name: 'Agent 指引 1' }).click(); await expect(page.locator('.markdown')).toContainText('window.pwned');
   expect(await page.evaluate(() => window.pwned)).toBeUndefined(); expect(seen.filter(url => url.includes('example.invalid'))).toEqual([]);
   await page.getByRole('link', { name: '使用场景笔记' }).click(); await expect(page.locator('.markdown')).toContainText('我的使用场景');
+});
+test('agent and user notes are separate, Markdown code is highlighted, and inspector width persists', async ({ page }) => {
+  fs.appendFileSync(path.join(root, '.plan/notes/agent/storage.md'), '\n```rust\nfn main() { println!("ok"); }\n```\n');
+  plan.tasks.find(task => task.id === 'storage-choice').notes.push('notes/user/scope.md'); writePlan(root, plan);
+  await expect(page.locator('#connection')).toHaveText('已同步');
+  await page.locator('#task-list').getByRole('button', { name: '决定本地数据的存储方式' }).click();
+  await expect(page.getByRole('tab', { name: '用户笔记 1' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Agent 指引 1' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Agent 指引 1' }).click();
+  await expect(page.locator('.markdown pre code span').first()).toBeVisible();
+  const before = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.querySelector('.app-layout')).getPropertyValue('--inspector-width')));
+  const resizer = await page.locator('#inspector-resizer').boundingBox();
+  await page.mouse.move(resizer.x + 5, resizer.y + 100); await page.mouse.down(); await page.mouse.move(resizer.x - 80, resizer.y + 100, { steps: 5 }); await page.mouse.up();
+  const after = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.querySelector('.app-layout')).getPropertyValue('--inspector-width')));
+  expect(after).toBeGreaterThan(before);
+  await page.reload(); await expect(page.locator('#connection')).toHaveText('已同步');
+  expect(await page.evaluate(() => Number.parseFloat(getComputedStyle(document.querySelector('.app-layout')).getPropertyValue('--inspector-width')))).toBe(after);
 });
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 1920, height: 1080 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
   test(`readable graph and detail at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {

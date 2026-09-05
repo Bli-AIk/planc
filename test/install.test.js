@@ -17,8 +17,8 @@ for (const [agent, folder] of [['codex', '.agents'], ['claude', '.claude']]) {
     assert.ok(fs.existsSync(path.join(skill, 'SKILL.md')));
     assert.deepEqual(fs.readdirSync(root), [folder]);
     const cli = path.join(skill, 'scripts/planc.cjs');
-    for (const command of ['init', 'validate', 'checkpoint']) {
-      const result = spawnSync(process.execPath, [cli, command, '.'], { cwd: root, encoding: 'utf8' });
+    for (const command of [['init', '--accept-plan-git'], ['validate'], ['checkpoint']]) {
+      const result = spawnSync(process.execPath, [cli, command[0], '.', ...(command.slice(1))], { cwd: root, encoding: 'utf8' });
       assert.equal(result.status, 0, result.stderr);
     }
     const child = spawn(process.execPath, [cli, 'serve', '.', '--port', '0'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });

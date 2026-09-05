@@ -44,7 +44,7 @@ cd planc-test
 git init
 ```
 
-使用已有项目时，直接进入项目根目录。然后选择下面对应客户端的安装命令；完整 Skill 复制到项目后，临时克隆目录会自动清理。
+使用已有项目时，直接进入项目根目录。下面命令中的 `--accept-plan-git` 表示明确同意 planc 在 `.plan` 内创建独立历史并向项目 `.gitignore` 追加 `/.plan/`；它不会提交外层仓库。然后选择下面对应客户端的安装命令；完整 Skill 复制到项目后，临时克隆目录会自动清理。
 
 ### Codex
 
@@ -57,7 +57,7 @@ git init
   trap 'rm -rf "$planc_source"' EXIT
   git clone --depth 1 https://github.com/Bli-AIk/planc.git "$planc_source"
   node "$planc_source/scripts/install.mjs" codex .
-  node .agents/skills/planc/scripts/planc.cjs init .
+  node .agents/skills/planc/scripts/planc.cjs init . --accept-plan-git
   node .agents/skills/planc/scripts/planc.cjs validate .
 )
 ```
@@ -85,7 +85,7 @@ node .agents/skills/planc/scripts/planc.cjs serve .
   trap 'rm -rf "$planc_source"' EXIT
   git clone --depth 1 https://github.com/Bli-AIk/planc.git "$planc_source"
   node "$planc_source/scripts/install.mjs" claude .
-  node .claude/skills/planc/scripts/planc.cjs init .
+  node .claude/skills/planc/scripts/planc.cjs init . --accept-plan-git
   node .claude/skills/planc/scripts/planc.cjs validate .
 )
 ```

@@ -23,6 +23,7 @@
   letter-spacing: 0;
 }
 * { box-sizing: border-box; }
+:root { --inspector-width: 372px; }
 body { margin: 0; }
 button, input { font: inherit; letter-spacing: 0; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
@@ -50,7 +51,7 @@ a { color: var(--blue); text-underline-offset: 4px; }
 .icon-button { border: 0; background: transparent; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; flex: none; padding: 0; color: var(--subtext); }
 .icon-button:hover { background: var(--surface0); color: var(--text); }
 
-.app-layout { display: grid; grid-template-columns: 232px minmax(320px, 1fr) 372px; height: calc(100dvh - 64px); min-height: 570px; }
+.app-layout { display: grid; grid-template-columns: 232px minmax(320px, 1fr) var(--inspector-width); height: calc(100dvh - 64px); min-height: 570px; }
 .sidebar { background: var(--mantle); border-right: 1px solid var(--surface1); display: flex; flex-direction: column; overflow: hidden; padding: 24px 12px 0; }
 .section-label { padding: 0 12px; color: var(--subtext); font-size: 11px; display: flex; justify-content: space-between; margin-bottom: 12px; }
 .section-label > span { color: var(--overlay); }
@@ -97,7 +98,10 @@ input[type="checkbox"] { accent-color: var(--blue); width: 14px; height: 14px; m
 .ready { color: var(--blue); }
 .blocked, .not_started { color: var(--overlay); }
 
-.inspector { border-left: 1px solid var(--surface1); min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.inspector { position: relative; border-left: 1px solid var(--surface1); min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.panel-resizer { position: absolute; z-index: 3; top: 0; bottom: 0; left: -5px; width: 10px; cursor: col-resize; }
+.panel-resizer::after { content: ""; position: absolute; top: 40%; bottom: 40%; left: 4px; width: 2px; background: var(--surface2); opacity: 0; transition: opacity .12s ease; }
+.panel-resizer:hover::after, .panel-resizer:focus-visible::after { opacity: 1; }
 .inspector-heading { padding: 16px 24px 4px; min-height: 56px; display: flex; justify-content: space-between; align-items: center; color: var(--subtext); font-size: 11px; }
 #detail-title { padding: 8px 24px 20px; }
 #detail-title h2 { font-size: 17px; font-weight: 600; margin-bottom: 12px; line-height: 1.75; overflow-wrap: anywhere; }
@@ -129,6 +133,13 @@ input[type="checkbox"] { accent-color: var(--blue); width: 14px; height: 14px; m
 .markdown h2 { font-size: 16px; margin-top: 24px; }
 .markdown h3 { font-size: 14px; margin-top: 20px; }
 .markdown pre { overflow: auto; background: var(--mantle); border: 1px solid var(--surface0); padding: 12px; border-radius: 4px; font-size: 11px; white-space: pre; }
+.markdown pre code { color: var(--text); background: transparent; }
+.hljs-comment, .hljs-quote { color: var(--overlay); }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-section { color: var(--mauve); }
+.hljs-string, .hljs-attribute, .hljs-regexp, .hljs-addition { color: var(--green); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-variable { color: var(--yellow); }
+.hljs-title, .hljs-name, .hljs-type, .hljs-built_in { color: var(--blue); }
+.hljs-meta, .hljs-meta .hljs-keyword { color: var(--teal); }
 .markdown code { font-family: var(--font-mono); font-size: 11px; color: var(--teal); background: var(--mantle); }
 .markdown blockquote { border-left: 2px solid var(--mauve); margin: 16px 0; padding-left: 12px; color: var(--subtext); }
 .markdown table { display: block; max-width: 100%; overflow: auto; border-collapse: collapse; font-size: 12px; }
@@ -156,7 +167,7 @@ dialog::backdrop { background: #11111bcc; }
 .history-subheading { margin: 24px 0 12px; font-size: 13px; color: var(--mauve); }
 
 @media (min-width: 1650px) {
-  .app-layout { grid-template-columns: 252px minmax(320px, 1fr) 412px; }
+  .app-layout { grid-template-columns: 252px minmax(320px, 1fr) var(--inspector-width); --inspector-width: 412px; }
   .brand { width: 208px; }
 }
 @media (max-width: 1120px) {
@@ -188,6 +199,7 @@ dialog::backdrop { background: #11111bcc; }
   .graph-footer { padding: 12px 16px; }
   .legend { gap: 12px; }
   .inspector { border-left: 0; border-top: 1px solid var(--surface1); overflow: visible; }
+  .panel-resizer { display: none; }
   .detail-content { min-height: 240px; overflow: visible; padding-top: 24px; font-size: 14px; }
   .inspector-heading { padding-top: 12px; }
   #detail-title { padding-top: 4px; padding-bottom: 8px; }
