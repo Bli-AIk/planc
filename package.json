@@ -1,6 +1,6 @@
 {
   "name": "planc",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "An agent skill for collaborative plans, user-led execution, and a local read-only graph",
   "license": "MIT",
   "repository": {
