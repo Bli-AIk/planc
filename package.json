@@ -1,0 +1,63 @@
+{
+  "name": "planc",
+  "version": "0.1.0",
+  "description": "An agent skill for collaborative plans, user-led execution, and a local read-only graph",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bli-AIk/planc.git"
+  },
+  "homepage": "https://github.com/Bli-AIk/planc#readme",
+  "bugs": {
+    "url": "https://github.com/Bli-AIk/planc/issues"
+  },
+  "type": "commonjs",
+  "main": "src/index.js",
+  "bin": {
+    "planc": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js serve",
+    "validate": "node src/cli.js validate",
+    "build": "tsc --noEmit && node scripts/build.mjs",
+    "test": "node --test test/*.test.js",
+    "test:browser": "playwright test",
+    "test:readme": "node scripts/verify-readme.mjs",
+    "format:md": "prettier --write \"**/*.md\"",
+    "check:md": "prettier --check \"**/*.md\"",
+    "prepack": "npm run build",
+    "check": "npm run build && npm test"
+  },
+  "files": [
+    "src/",
+    "dist/",
+    "skill/",
+    "examples/",
+    "scripts/install.mjs",
+    "docs/images/",
+    "README.md",
+    "readme_zh-hans.md",
+    "DESIGN.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "cytoscape": "^3.30.4",
+    "cytoscape-dagre": "^2.5.0",
+    "dagre": "^0.8.5",
+    "lucide": "^0.468.0",
+    "markdown-it": "^14.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/cytoscape": "^3.21.9",
+    "@types/cytoscape-dagre": "^2.3.3",
+    "@types/markdown-it": "^14.1.2",
+    "esbuild": "^0.25.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

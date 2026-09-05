@@ -1,0 +1,48 @@
+Bundled license information:
+
+lucide/dist/esm/createElement.js:
+lucide/dist/esm/replaceElement.js:
+lucide/dist/esm/defaultAttributes.js:
+lucide/dist/esm/icons/arrow-right.js:
+lucide/dist/esm/icons/arrow-up-right.js:
+lucide/dist/esm/icons/circle-check.js:
+lucide/dist/esm/icons/circle-dot.js:
+lucide/dist/esm/icons/circle.js:
+lucide/dist/esm/icons/eye.js:
+lucide/dist/esm/icons/file-text.js:
+lucide/dist/esm/icons/git-branch.js:
+lucide/dist/esm/icons/git-commit-horizontal.js:
+lucide/dist/esm/icons/history.js:
+lucide/dist/esm/icons/list-todo.js:
+lucide/dist/esm/icons/lock-keyhole.js:
+lucide/dist/esm/icons/message-square.js:
+lucide/dist/esm/icons/minus.js:
+lucide/dist/esm/icons/network.js:
+lucide/dist/esm/icons/plus.js:
+lucide/dist/esm/icons/scan.js:
+lucide/dist/esm/icons/search.js:
+lucide/dist/esm/icons/workflow.js:
+lucide/dist/esm/icons/x.js:
+lucide/dist/esm/lucide.js:
+  /**
+   * @license lucide v0.468.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+
+cytoscape/dist/cytoscape.esm.mjs:
+  /*!
+  Embeddable Minimum Strictly-Compliant Promises/A+ 1.1.1 Thenable
+  Copyright (c) 2013-2014 Ralf S. Engelschall (http://engelschall.com)
+  Licensed under The MIT License (http://opensource.org/licenses/MIT)
+  */
+  /*!
+  Event object based on jQuery events, MIT license
+  
+  https://jquery.org/license/
+  https://tldrlegal.com/license/mit-license
+  https://github.com/jquery/jquery/blob/master/src/event.js
+  */
+  /*! Bezier curve function generator. Copyright Gaetan Renaudeau. MIT License: http://en.wikipedia.org/wiki/MIT_License */
+  /*! Runge-Kutta spring physics function generator. Adapted from Framer.js, copyright Koen Bok. MIT License: http://en.wikipedia.org/wiki/MIT_License */

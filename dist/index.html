@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#1e1e2e"><title>planc</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="planc"><i data-lucide="workflow"></i><span>planc</span></a>
+    <div class="project-heading"><span id="project-title">任务书</span><span class="readonly"><i data-lucide="eye"></i>只读</span></div>
+    <span id="connection" role="status" class="connection">连接中</span>
+    <button id="history-button" class="icon-button" aria-label="本地历史" title="本地历史"><i data-lucide="history"></i></button>
+  </header>
+  <div id="error" class="error-banner" role="alert" hidden></div>
+  <main class="app-layout">
+    <aside class="sidebar">
+      <div class="section-label">主题图 <span id="graph-count"></span></div>
+      <nav id="graphs" aria-label="主题图"></nav>
+      <div class="task-index">
+        <div class="section-label">任务 <span id="task-count"></span></div>
+        <label class="search"><i data-lucide="search"></i><input id="search" type="search" placeholder="搜索任务" aria-label="搜索任务"></label>
+        <div id="task-list" aria-label="任务列表"></div>
+      </div>
+      <div class="sidebar-footer"><i data-lucide="git-commit-horizontal"></i><span id="latest-commit">本地记录</span></div>
+    </aside>
+    <section class="graph-workspace" aria-label="计划图">
+      <div class="graph-heading"><div><div class="eyebrow">任务书</div><h1 id="graph-title">加载中</h1></div><span id="visible-count" class="count"></span></div>
+      <div class="graph-options">
+        <label><input id="show-all" type="checkbox">查看隐藏项</label>
+        <label><input id="show-implicit" type="checkbox">查看隐藏前置</label>
+      </div>
+      <div class="canvas-wrap">
+        <div id="graph" aria-label="任务依赖图"></div>
+        <div id="graph-empty" class="empty-state" hidden><i data-lucide="list-todo"></i><p>暂无任务</p></div>
+        <div class="zoom-tools" aria-label="图视口">
+          <button id="zoom-in" class="icon-button" aria-label="放大" title="放大"><i data-lucide="plus"></i></button>
+          <button id="zoom-out" class="icon-button" aria-label="缩小" title="缩小"><i data-lucide="minus"></i></button>
+          <button id="fit" class="icon-button" aria-label="适应图形" title="适应图形"><i data-lucide="scan"></i></button>
+        </div>
+      </div>
+      <div class="graph-footer"><div class="legend"><span class="completed"><i data-lucide="circle-check"></i>已完成</span><span class="in_progress"><i data-lucide="circle-dot"></i>进行中</span><span class="ready"><i data-lucide="circle"></i>已就绪</span><span class="blocked"><i data-lucide="lock-keyhole"></i>未就绪</span></div><span id="updated-at"></span></div>
+    </section>
+    <aside class="inspector" aria-label="任务详情">
+      <div class="inspector-heading"><span id="detail-label">主题概览</span><button id="clear-selection" class="icon-button" aria-label="关闭任务详情" title="关闭任务详情" hidden><i data-lucide="x"></i></button></div>
+      <div id="detail-title"></div>
+      <nav id="detail-tabs" class="tabs" aria-label="详情视图"></nav>
+      <div id="detail-content" class="detail-content"></div>
+    </aside>
+  </main>
+  <dialog id="history-dialog" aria-labelledby="history-title"><div class="dialog-heading"><h2 id="history-title">本地历史</h2><button id="close-history" class="icon-button" aria-label="关闭历史" title="关闭历史"><i data-lucide="x"></i></button></div><div id="history-content"></div></dialog>
+  <script src="/app.js" defer></script>
+</body>
+</html>

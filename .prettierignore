@@ -1,0 +1,7 @@
+node_modules/
+dist/
+skill/planc/dist/
+skill/planc/scripts/
+test-results/
+playwright-report/
+.plan/

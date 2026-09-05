@@ -1,0 +1,4 @@
+dist/** linguist-generated=true -whitespace
+skill/planc/dist/** linguist-generated=true -whitespace
+skill/planc/scripts/planc.cjs linguist-generated=true
+skill/planc/references/schema.json linguist-generated=true

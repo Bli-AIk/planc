@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://planc.local/schema/v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "title", "updatedAt", "tasks", "relations", "graphs", "checks", "changes"],
+  "properties": {
+    "version": { "const": 1 }, "title": { "$ref": "#/definitions/text" }, "updatedAt": { "$ref": "#/definitions/timestamp" },
+    "tasks": { "type": "array", "items": { "$ref": "#/definitions/task" } },
+    "relations": { "type": "array", "items": { "$ref": "#/definitions/relation" } },
+    "graphs": { "type": "array", "items": { "$ref": "#/definitions/graph" } },
+    "checks": { "type": "array", "items": { "$ref": "#/definitions/check" } },
+    "changes": { "type": "array", "items": { "$ref": "#/definitions/change" } }
+  },
+  "definitions": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$", "maxLength": 100 },
+    "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "notes": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^notes/.+\\.md$" } },
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "kind", "goal", "completionCriteria", "status", "notes"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" }, "title": { "$ref": "#/definitions/text" },
+        "kind": { "enum": ["implementation", "understanding", "investigation", "decision"] },
+        "goal": { "$ref": "#/definitions/text" },
+        "completionCriteria": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/text" } },
+        "status": { "enum": ["not_started", "in_progress", "completed"] },
+        "notes": { "$ref": "#/definitions/notes" },
+        "completion": { "type": "object", "additionalProperties": false, "required": ["checkId"], "properties": { "checkId": { "$ref": "#/definitions/id" } } }
+      }
+    },
+    "relation": {
+      "type": "object", "additionalProperties": false, "required": ["id", "from", "to", "type"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" }, "from": { "$ref": "#/definitions/id" }, "to": { "$ref": "#/definitions/id" },
+        "type": { "enum": ["prerequisite", "related"] }, "implicit": { "type": "boolean" }
+      }
+    },
+    "graph": {
+      "type": "object", "additionalProperties": false, "required": ["id", "title", "taskIds", "notes"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" }, "title": { "$ref": "#/definitions/text" },
+        "taskIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/id" } }, "notes": { "$ref": "#/definitions/notes" }
+      }
+    },
+    "check": {
+      "type": "object", "additionalProperties": false, "required": ["id", "taskId", "at", "kind", "outcome", "summary", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" }, "taskId": { "$ref": "#/definitions/id" }, "at": { "$ref": "#/definitions/timestamp" },
+        "kind": { "enum": ["review", "user_confirmation"] }, "outcome": { "enum": ["completed", "needs_work"] },
+        "summary": { "$ref": "#/definitions/text" }, "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/text" } }, "dissent": { "$ref": "#/definitions/text" }
+      },
+      "allOf": [{ "if": { "properties": { "kind": { "const": "user_confirmation" } } }, "then": { "required": ["dissent"], "properties": { "outcome": { "const": "completed" } } } }]
+    },
+    "change": {
+      "type": "object", "additionalProperties": false, "required": ["id", "at", "reason", "summary", "taskIds"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" }, "at": { "$ref": "#/definitions/timestamp" }, "reason": { "$ref": "#/definitions/text" }, "summary": { "$ref": "#/definitions/text" },
+        "taskIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/id" } }
+      }
+    }
+  }
+}

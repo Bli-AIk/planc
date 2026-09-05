@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "title": "阅读清单 · 示例",
+  "updatedAt": "2026-09-05T09:30:00Z",
+  "tasks": [
+    { "id": "reading-scope", "title": "明确阅读清单的使用场景", "kind": "understanding", "goal": "梳理保存、阅读和归档之间的区别，明确第一版需要支持的日常场景。", "completionCriteria": ["用自己的话描述一次完整的收集与阅读过程。", "写下第一版的范围和暂不处理的问题。"], "status": "completed", "notes": ["notes/user/scope.md"], "completion": { "checkId": "review-scope" } },
+    { "id": "storage-choice", "title": "决定本地数据的存储方式", "kind": "decision", "goal": "比较本地文件与浏览器存储，根据离线使用和数据导出的需要选择方案。", "completionCriteria": ["记录存储选择及理由。", "说明数据恢复与导出的限制。"], "status": "completed", "notes": ["notes/agent/storage.md"], "completion": { "checkId": "confirm-storage" } },
+    { "id": "reading-view", "title": "实现清单的阅读与归档视图", "kind": "implementation", "goal": "由用户实现阅读清单界面，区分未读和已归档条目。", "completionCriteria": ["能够浏览、打开和归档一条阅读记录。", "记录实现中遇到的问题及自己的处理思路。"], "status": "in_progress", "notes": ["notes/user/view.md"] },
+    { "id": "import-research", "title": "调查书签导入的数据边界", "kind": "investigation", "goal": "查阅真实书签文件，识别标题、URL、时间与重复记录的差异。", "completionCriteria": ["记录至少两类文件差异及待决定的问题。"], "status": "not_started", "notes": [] },
+    { "id": "verify-reading", "title": "核对保存与归档的完整流程", "kind": "investigation", "goal": "由用户执行完整流程，留下可供检查的结果与自己的观察。", "completionCriteria": ["保存、重启、阅读与归档后数据一致。", "记录失败场景及执行结果。"], "status": "not_started", "notes": [] },
+    { "id": "review-learning", "title": "回顾数据流与实现取舍", "kind": "understanding", "goal": "用户结合已有实现记录自己的理解与尚未解决的疑问。", "completionCriteria": ["能够在自己的笔记中解释一条记录从输入到持久化的过程。"], "status": "not_started", "notes": [] }
+  ],
+  "relations": [
+    { "id": "scope-storage", "from": "reading-scope", "to": "storage-choice", "type": "prerequisite" },
+    { "id": "scope-view", "from": "reading-scope", "to": "reading-view", "type": "prerequisite", "implicit": true },
+    { "id": "storage-view", "from": "storage-choice", "to": "reading-view", "type": "prerequisite" },
+    { "id": "view-verification", "from": "reading-view", "to": "verify-reading", "type": "prerequisite" },
+    { "id": "storage-verification", "from": "storage-choice", "to": "verify-reading", "type": "prerequisite", "implicit": true },
+    { "id": "verify-reflection", "from": "verify-reading", "to": "review-learning", "type": "prerequisite" },
+    { "id": "import-view", "from": "import-research", "to": "reading-view", "type": "related" }
+  ],
+  "graphs": [
+    { "id": "delivery", "title": "阅读清单", "taskIds": ["reading-scope", "storage-choice", "reading-view", "import-research", "verify-reading", "review-learning"], "notes": ["notes/agent/discussion.md"] },
+    { "id": "data", "title": "数据与存储", "taskIds": ["storage-choice", "import-research", "verify-reading"], "notes": ["notes/agent/storage.md"] },
+    { "id": "reflection", "title": "理解与回顾", "taskIds": ["reading-scope", "review-learning"], "notes": ["notes/user/scope.md"] }
+  ],
+  "checks": [
+    { "id": "review-scope", "taskId": "reading-scope", "at": "2026-09-05T08:00:00Z", "kind": "review", "outcome": "completed", "summary": "场景和第一版范围已写入讨论结论。", "evidence": ["示例记录：阅读 notes/user/scope.md，核对保存、阅读和归档场景。"] },
+    { "id": "review-storage", "taskId": "storage-choice", "at": "2026-09-05T08:30:00Z", "kind": "review", "outcome": "needs_work", "summary": "方案理由明确，但恢复路径仍有疑点。", "evidence": ["示例记录：存储笔记尚未覆盖设备损坏后的恢复步骤。"] },
+    { "id": "confirm-storage", "taskId": "storage-choice", "at": "2026-09-05T09:00:00Z", "kind": "user_confirmation", "outcome": "completed", "summary": "用户了解恢复限制后确认完成当前存储决策。", "evidence": ["虚构示例中的用户明确表示：我理解这个限制，按完成处理，先推进清单视图。"], "dissent": "LLM 仍认为数据恢复说明不充分；保留此意见，后继任务正常激活。" }
+  ],
+  "changes": [
+    { "id": "adopt-initial-plan", "at": "2026-09-05T07:30:00Z", "reason": "示例中的用户决定先完成个人离线阅读流程，并保留对导入场景的独立调查。", "summary": "采纳第一轮任务与前置关系。", "taskIds": ["reading-scope", "storage-choice", "reading-view", "import-research", "verify-reading", "review-learning"] }
+  ]
+}
