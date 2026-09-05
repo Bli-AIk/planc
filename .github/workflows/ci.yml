@@ -15,7 +15,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check:md
+      - name: Check Markdown
+        run: |
+          if [[ "$GITHUB_HEAD_REF" == release-please--* ]]; then
+            npx prettier --write CHANGELOG.md
+          fi
+          npm run check:md
       - run: npm run check
       - run: git diff --exit-code -- dist skill
       - run: npx playwright install --with-deps chromium
